@@ -1,0 +1,1 @@
+# 📦 CodeBox - OpenCode Docker Environment
