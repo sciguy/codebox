@@ -1,10 +1,12 @@
 # 📦 CodeBox - OpenCode Docker Environment
 
-A containerized OpenCode environment. This setup allows you to run OpenCode in a Docker container with automatic updates, multi-architecture support, and seamless integration with your local configuration files.
+A containerized OpenCode environment. This setup allows you to run OpenCode in a Docker container with automatic updates, multi-architecture support, and dynamic mounting of your current working directory into the container.
 
 
 ## Features
 
+- **Isolated workspace** - Only your current directory is mounted into the container, limiting OpenCode's access to other host files for safer operation
+- **Run from anywhere** - Launch OpenCode from any project directory with automatic mounting
 - Easily update to the latest version of OpenCode using the `--upgrade` option
 - Persistent configuration across containers
 - Multi-architecture support (ARM64/x86_64)
@@ -162,8 +164,8 @@ OpenCode uses several directories on your host system for different purposes:
 |-----------|---------|----------------|
 | `~/.local/share/opencode` | **Data**: Auth tokens, logs, session data | ~195 MB |
 | `~/.cache/opencode` | **Cache**: Temporary files, downloads | ~15 MB |
-| `~/.config/opencode` | **Config**: Settings, preferences, API keys | ~4 MB |
-| `~/.local/state/opencode` | **State**: History, UI state | ~14 KB |
+| `~/.config/opencode` | **Config**: Settings, agents, etc | ~4 MB |
+| `~/.local/state/opencode` | **State**: History, UI state, Favorites | ~14 KB |
 | `~/.opencode/bin/opencode` | **Binary**: OpenCode executable | - |
 
 These directories are automatically created when OpenCode is first installed. To see what would be removed during uninstallation:
