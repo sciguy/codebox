@@ -186,20 +186,22 @@ The `codebox` function:
 
 ## OpenCode Directories
 
-OpenCode uses several directories on your host system for different purposes:
+OpenCode uses several directories for different purposes:
 
-| Directory | Purpose | Size (typical) |
-|-----------|---------|----------------|
-| `~/.local/share/opencode` | **Data**: Auth tokens, logs, session data | ~195 MB |
-| `~/.cache/opencode` | **Cache**: Temporary files, downloads | ~15 MB |
-| `~/.config/opencode` | **Config**: Settings, agents, etc | ~4 MB |
-| `~/.local/state/opencode` | **State**: History, UI state, Favorites | ~14 KB |
-| `~/.opencode/bin/opencode` | **Binary**: OpenCode executable | - |
+| Directory | Purpose | CodeBox location |
+|-----------|---------|-----------------|
+| `~/.local/share/opencode` | **Data**: Auth tokens, logs, session data | Mounted from host |
+| `~/.local/state/opencode` | **State**: History, UI state, Favorites | Mounted from host |
+| `~/.config/opencode` | **Config**: Settings, agents, etc | Optional host mount |
+| `~/.cache/opencode` | **Cache**: Temporary files, downloads | Container only |
+| `~/.opencode/bin/opencode` | **Binary**: OpenCode executable | Container only |
 
-These directories are automatically created when OpenCode is first installed. To see what would be removed during uninstallation:
+Directories mounted on the host will be automatically created if needed on first run of codebox.
 
 ```bash
-opencode uninstall --dry-run
+# To get a list of directories used by OpenCode
+# 'uninstall --dry-run' is passed through to opencode
+codebox uninstall --dry-run
 ```
 
 ### Volume Mounts
@@ -209,7 +211,7 @@ When you run `codebox`, these directories are mounted into the container:
 | Host | Container | Purpose |
 |------|-----------|---------|
 | Current directory | `/${CODEBOX_NAME}/hostname/dirname` | Your project files (dynamic) |
-| `~/.config/opencode` | `/home/dev/.config/opencode` | Settings, preferences |
+| [`HOST_OPENCODE_CONFIG_DIR`](#opencode-config-directory) | `/home/dev/.config/opencode` | Settings, preferences |
 | `~/.local/share/opencode` | `/home/dev/.local/share/opencode` | Auth tokens, logs |
 | `~/.local/state/opencode` | `/home/dev/.local/state/opencode` | History, state |
 
@@ -246,6 +248,25 @@ Some providers require OAuth authentication instead of API keys:
 
 Once connected, authentication tokens are stored in `~/.local/share/opencode` and persist across container sessions.
 
+### OpenCode Config Directory
+
+The `config.opencode.example/` directory provides a ready-made OpenCode configuration you can copy into your own config directory. This is useful if you want a version-controlled setup with `opencode.json`, `AGENTS.md`, and optional subdirectories like `agents/`, `commands/`, or `themes/`.
+
+To use it with CodeBox, copy the folder to a location you control and set `HOST_OPENCODE_CONFIG_DIR` in `.env` to that absolute path. When set, CodeBox mounts it to `~/.config/opencode` inside the container, so your OpenCode configuration persists across sessions and acts as the global config layer.
+
+Example using the default OpenCode config path:
+
+```bash
+cp -R config.opencode.example ~/.config/opencode
+```
+
+```bash
+# Must be an absolute path
+HOST_OPENCODE_CONFIG_DIR=/home/your-username/.config/opencode
+```
+
+For details on supported files, directory structure, and precedence, see `config.opencode.example/README.md` and the `OpenCode Config Directory` section in `.env.example`.
+
 ### Timezone
 
 If session timestamps appear in UTC, set your local timezone in `.env` so the container formats times correctly:
@@ -264,17 +285,6 @@ GIT_AUTHOR_EMAIL="your.email@example.com"
 GIT_COMMITTER_NAME="Your Name"
 GIT_COMMITTER_EMAIL="your.email@example.com"
 ```
-
-### Customize Container Root Path
-
-The default container root is `/BOX`. You can customize this by setting `CODEBOX_NAME` in `.env`:
-
-```bash
-# Use a different root directory name
-CODEBOX_NAME=WORKSPACE
-```
-
-This will create paths like `/WORKSPACE/hostname/dirname` inside the container.
 
 ## Updating OpenCode
 
@@ -298,7 +308,7 @@ codebox --version
 Run with shell access for debugging:
 
 ```bash
-./codebox.sh --bash
+codebox --bash
 ```
 
 ## Cross-Platform Support
