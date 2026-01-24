@@ -2,10 +2,12 @@
 
 A containerized OpenCode environment. This setup allows you to run OpenCode in a Docker container with automatic updates, multi-architecture support, and dynamic mounting of your current working directory into the container.
 
+Docker is required to use CodeBox.
+
 
 ## Features
 
-- **Isolated workspace** - Only your current directory is mounted into the container, limiting OpenCode's access to other host files for safer operation
+- **Isolated workspace** - Only your current directory and specific OpenCode directories are mounted into the container, limiting access to other host files for safer operation
 - **Run from anywhere** - Launch OpenCode from any project directory with automatic mounting
 - Easily update to the latest version of OpenCode using the `--upgrade` option
 - Persistent configuration across containers
@@ -19,7 +21,12 @@ A containerized OpenCode environment. This setup allows you to run OpenCode in a
 ### 1. Clone the Repository
 
 ```bash
+# HTTPS
 git clone https://github.com/sciguy/codebox.git ~/codebox
+cd ~/codebox
+
+# SSH
+git clone git@github.com:sciguy/codebox.git ~/codebox
 cd ~/codebox
 ```
 
@@ -71,6 +78,16 @@ fi
 ```
 
 After adding this and reloading your shell (`source ~/.bashrc`), you can use `codebox` from anywhere.
+
+Alternative setup with a symlink from your user bin directory:
+
+```bash
+mkdir -p "$HOME/bin"
+ln -s "$HOME/codebox/codebox.sh" "$HOME/bin/codebox"
+chmod +x "$HOME/codebox/codebox.sh"
+```
+
+Make sure `$HOME/bin` is in your `PATH` (for example, add `export PATH="$HOME/bin:$PATH"` to your shell config).
 
 
 ## Usage
