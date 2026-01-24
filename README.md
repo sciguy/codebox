@@ -190,9 +190,9 @@ OpenCode uses several directories for different purposes:
 
 | Directory | Purpose | CodeBox location |
 |-----------|---------|-----------------|
+| `~/.config/opencode` | **Config**: Settings, agents, etc | Optional host mount |
 | `~/.local/share/opencode` | **Data**: Auth tokens, logs, session data | Mounted from host |
 | `~/.local/state/opencode` | **State**: History, UI state, Favorites | Mounted from host |
-| `~/.config/opencode` | **Config**: Settings, agents, etc | Optional host mount |
 | `~/.cache/opencode` | **Cache**: Temporary files, downloads | Container only |
 | `~/.opencode/bin/opencode` | **Binary**: OpenCode executable | Container only |
 
@@ -200,8 +200,8 @@ Directories mounted on the host will be automatically created if needed on first
 
 ```bash
 # To get a list of directories used by OpenCode
-# 'uninstall --dry-run' is passed through to opencode
 codebox uninstall --dry-run
+# 'uninstall --dry-run' is passed through to opencode
 ```
 
 ### Volume Mounts
