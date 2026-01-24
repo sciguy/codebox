@@ -117,7 +117,7 @@ codebox --upgrade
 codebox -h
 
 # Combined options
-codebox --upgrade --name PROJECT --version
+codebox --upgrade --version
 ```
 
 ### Complete Options Reference
@@ -141,8 +141,8 @@ Options:
 Any additional arguments not recognized by codebox are passed directly to OpenCode. For example:
 
 ```bash
-codebox --version          # Passed to OpenCode
-codebox --continue         # Passed to OpenCode
+codebox --version            # Passed to OpenCode
+codebox --continue           # Passed to OpenCode
 codebox --upgrade --version  # --upgrade for codebox, --version for OpenCode
 ```
 
@@ -155,8 +155,11 @@ When you run `codebox` from any directory, the container creates a path structur
 ```
 
 For example (with default `CODEBOX_NAME=BOX`):
-- From `~/my-project` on machine `helix`: `/BOX/helix/my-project`
-- From `~/workspace/app` on machine `helix`: `/BOX/helix/app`
+
+| Host directory | Hostname | Container path |
+| --- | --- | --- |
+| `~/my-project` | `helix` | `/BOX/helix/my-project` |
+| `~/workspace/app` | `helix` | `/BOX/helix/app` |
 
 This makes it clear you're in a containerized environment and shows which machine and project you're working on.
 
