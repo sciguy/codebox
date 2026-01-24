@@ -110,9 +110,6 @@ codebox --continue
 ### Advanced Options
 
 ```bash
-# Use a custom container root path (temporary override)
-codebox --name WORKSPACE
-
 # Update the Docker image to latest OpenCode version
 codebox --upgrade
 
@@ -162,6 +159,18 @@ For example (with default `CODEBOX_NAME=BOX`):
 - From `~/workspace/app` on machine `helix`: `/BOX/helix/app`
 
 This makes it clear you're in a containerized environment and shows which machine and project you're working on.
+
+You can temporarily override the container root for a single session with `--name`:
+
+```bash
+codebox --name WORKSPACE
+```
+
+To make it persistent, set `CODEBOX_NAME` in your `.env` file:
+
+```bash
+CODEBOX_NAME=WORKSPACE
+```
 
 ## How It Works
 
