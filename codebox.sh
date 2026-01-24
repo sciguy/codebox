@@ -184,6 +184,10 @@ main() {
         exit 1
     fi
 
+    # Create required host directories for OpenCode
+    mkdir -p ~/.local/share/opencode
+    mkdir -p ~/.local/state/opencode
+
     # Check if .env exists
     if [ ! -f "$OPENCODE_DOCKER_DIR/.env" ]; then
         echo "⚠️  Warning: .env file not found at $OPENCODE_DOCKER_DIR/.env"
