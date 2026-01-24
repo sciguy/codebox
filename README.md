@@ -48,7 +48,6 @@ vim .env  # Add your API keys
 
 Alternatively, you can use OAuth authentication for supported providers (see [OAuth & Provider Authentication](#oauth--provider-authentication) section).
 
-At least one authentication method is required (API key or OAuth) for providers like OpenCode Zen, Anthropic, OpenAI, GitHub Copilot, etc.
 
 ### 4. Start Using OpenCode
 

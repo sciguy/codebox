@@ -84,6 +84,12 @@ main() {
         echo "---------------------------------------------------------------"
     fi
 
+    if ! command -v docker >/dev/null 2>&1; then
+        echo "Error: Docker is not installed or not on PATH." >&2
+        echo "Install Docker and ensure the 'docker' CLI is available before running codebox." >&2
+        exit 1
+    fi
+
     # IMPORTANT: Capture current directory BEFORE any operations
     local WORKSPACE_DIR="$PWD"
     local PROTECTED_DIRS=("$HOME")
@@ -181,11 +187,12 @@ main() {
     # Check if .env exists
     if [ ! -f "$OPENCODE_DOCKER_DIR/.env" ]; then
         echo "⚠️  Warning: .env file not found at $OPENCODE_DOCKER_DIR/.env"
-        echo "Creating .env from $OPENCODE_DOCKER_DIR/.env.example..."
+        echo "    - Creating .env from $OPENCODE_DOCKER_DIR/.env.example..."
         cp "$OPENCODE_DOCKER_DIR/.env.example" "$OPENCODE_DOCKER_DIR/.env"
         echo ""
-        echo "📝 Please edit .env and add your API keys (if needed) before continuing"
-        echo "   vim $OPENCODE_DOCKER_DIR/.env"
+        echo "📝  Please edit .env and add your API keys (if needed) before continuing"
+        echo "    - Edit: vim $OPENCODE_DOCKER_DIR/.env"
+        echo "    - Or: rerun codebox now to use the default settings"
         echo ""
         exit 1
     fi
