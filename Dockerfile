@@ -126,7 +126,7 @@ ENV GIT_CONFIG_GLOBAL=/home/${USERNAME}/.gitconfig
 # ========================================
 # Copy custom bashrc snippet and append to .bashrc
 # ========================================
-COPY --chown=${UID}:${GID} dotfiles/docker_bashrc /tmp/docker_bashrc
+COPY --chown=${UID}:${GID} dotfiles/docker.bashrc /tmp/docker.bashrc
 
 # ========================================
 # Copy custom entrypoint script
@@ -150,8 +150,8 @@ RUN ln -sf /home/${USERNAME}/config/dotfiles/bash_aliases /home/${USERNAME}/.bas
  && echo -e "\n# ========================================" >> /home/${USERNAME}/.bashrc \
  && echo "# Custom Docker bashrc content" >> /home/${USERNAME}/.bashrc \
  && echo "# ========================================" >> /home/${USERNAME}/.bashrc \
- && cat /tmp/docker_bashrc >> /home/${USERNAME}/.bashrc \
- && rm /tmp/docker_bashrc
+ && cat /tmp/docker.bashrc >> /home/${USERNAME}/.bashrc \
+ && rm /tmp/docker.bashrc
 
 # ========================================
 # Set BASH_ENV to source bashrc for non-interactive shells
