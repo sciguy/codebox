@@ -221,6 +221,9 @@ main() {
         echo "------------------------------------------------------------------------"
         echo "⚠️  Warning: .env file not found at $OPENCODE_DOCKER_DIR/.env"
         echo "    - Creating .env from $OPENCODE_DOCKER_DIR/.env.example..."
+        if [ ! -f "$OPENCODE_DOCKER_DIR/.env.example" ]; then
+            exit_error "🛑 Error: .env.example not found at $OPENCODE_DOCKER_DIR/.env.example"
+        fi
         cp "$OPENCODE_DOCKER_DIR/.env.example" "$OPENCODE_DOCKER_DIR/.env"
         echo ""
         echo "📝  Please edit .env and add your API keys (if needed) before continuing"
@@ -270,15 +273,17 @@ main() {
     fi
 
     # Check if image exists or if it was built with different UID/GID/CODEBOX_NAME
-    IMAGE_UID=$(docker inspect opencode-dev:latest 2>/dev/null | grep -o '"UID=[^"]*"' | head -1 | cut -d= -f2 | tr -d '"' || echo "")
-    IMAGE_CODEBOX=$(docker inspect opencode-dev:latest 2>/dev/null | grep -o '"CODEBOX_NAME=[^"]*"' | head -1 | cut -d= -f2 | tr -d '"' || echo "")
+    IMAGE_ENV=$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' opencode-dev:latest 2>/dev/null || true)
+    IMAGE_UID=$(printf '%s\n' "$IMAGE_ENV" | awk -F= '$1=="UID"{print $2; exit}')
+    IMAGE_GID=$(printf '%s\n' "$IMAGE_ENV" | awk -F= '$1=="GID"{print $2; exit}')
+    IMAGE_CODEBOX=$(printf '%s\n' "$IMAGE_ENV" | awk -F= '$1=="CODEBOX_NAME"{print $2; exit}')
 
     NEEDS_REBUILD=false
     REBUILD_REASON=""
 
-    if [ -z "$IMAGE_UID" ] || [ "$IMAGE_UID" != "$USER_UID" ]; then
+    if [ -z "$IMAGE_UID" ] || [ "$IMAGE_UID" != "$USER_UID" ] || [ -z "$IMAGE_GID" ] || [ "$IMAGE_GID" != "$USER_GID" ]; then
         NEEDS_REBUILD=true
-        REBUILD_REASON="UID/GID mismatch (image: ${IMAGE_UID:-none}, current: $USER_UID)"
+        REBUILD_REASON="UID/GID mismatch (image: ${IMAGE_UID:-none}/${IMAGE_GID:-none}, current: $USER_UID/$USER_GID)"
     fi
 
     if [ -n "$IMAGE_CODEBOX" ] && [ "$IMAGE_CODEBOX" != "$CODEBOX_NAME" ]; then
@@ -301,6 +306,8 @@ main() {
         local OPENCODE_VERSION=$(read_env_value OPENCODE_VERSION)
         OPENCODE_VERSION="${OPENCODE_VERSION:-latest}"
         docker build \
+            --pull \
+            --no-cache \
             --build-arg UID="$USER_UID" \
             --build-arg GID="$USER_GID" \
             --build-arg OPENCODE_VERSION="$OPENCODE_VERSION" \
