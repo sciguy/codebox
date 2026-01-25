@@ -242,6 +242,11 @@ Some providers require OAuth authentication instead of API keys:
 5. Complete the authentication in your browser
 6. Return to OpenCode - the connection will be established
 
+If you are connecting from a remote server, set up SSH port forwarding so the OAuth callback can reach your local browser:
+```bash
+ssh -L 1455:localhost:1455 SERVER
+```
+
 **GitHub Copilot:**
 - Use the `/connect` command within OpenCode to link your GitHub account
 - Follow the on-screen authentication prompts
