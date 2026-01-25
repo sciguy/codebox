@@ -65,7 +65,7 @@ main() {
     local OPENCODE_DOCKER_DIR="$(dirname "$SCRIPT_PATH")"
 
     if [ -z "$OPENCODE_DOCKER_DIR" ]; then
-        echo "Warning: failed to resolve OpenCode Docker directory" >&2
+        echo "🛑 Error: failed to resolve OpenCode Docker directory" >&2
         exit 1
     fi
 
@@ -84,9 +84,11 @@ main() {
         echo "---------------------------------------------------------------"
     fi
 
-    if ! command -v docker >/dev/null 2>&1; then
-        echo "Error: Docker is not installed or not on PATH." >&2
-        echo "Install Docker and ensure the 'docker' CLI is available before running codebox." >&2
+    if ! command -v dockerB >/dev/null 2>&1; then
+        echo "---------------------------------------------------------------"
+        echo "🛑 Error: Docker is not installed or not on PATH." >&2
+        echo "   Install Docker and ensure the 'docker' CLI is available before running codebox." >&2
+        echo "---------------------------------------------------------------"
         exit 1
     fi
 
@@ -167,7 +169,7 @@ main() {
 
     # Check if OpenCode Docker directory exists
     if [ ! -d "$OPENCODE_DOCKER_DIR" ]; then
-        echo "Error: OpenCode Docker directory not found at $OPENCODE_DOCKER_DIR"
+        echo "🛑 Error: OpenCode Docker directory not found at $OPENCODE_DOCKER_DIR"
         exit 1
     fi
 
@@ -176,20 +178,33 @@ main() {
     if [[ "$OPENCODE_DOCKER_DIR" == "$HOME/"* ]]; then
         RELATIVE_PATH="${OPENCODE_DOCKER_DIR#"$HOME"/}"
         if [ -z "$RELATIVE_PATH" ]; then
-            echo "Error: OPENCODE_DOCKER_DIR must be inside \$HOME and include at least one subdirectory" >&2
+            echo "🛑 Error: OPENCODE_DOCKER_DIR must be inside \$HOME and include at least one subdirectory" >&2
             exit 1
         fi
     else
-        echo "Error: OPENCODE_DOCKER_DIR must be under \$HOME to derive RELATIVE_PATH" >&2
+        echo "🛑 Error: OPENCODE_DOCKER_DIR must be under \$HOME to derive RELATIVE_PATH" >&2
         exit 1
     fi
 
     # Create required host directories for OpenCode
-    mkdir -p ~/.local/share/opencode
-    mkdir -p ~/.local/state/opencode
+    if [ ! -d ~/.local/share/opencode ] || [ ! -d ~/.local/state/opencode ]; then
+        echo "------------------------------------------------------------------------"
+        echo "These directories are used to maintain data and state across sessions."
+        if [ ! -d ~/.local/share/opencode ]; then
+            echo "Creating directory [Data]: ${HOME}/.local/share/opencode"
+            mkdir -p ~/.local/share/opencode
+        fi
+        if [ ! -d ~/.local/state/opencode ]; then
+            echo "Creating directory [State]: ${HOME}/.local/state/opencode"
+            mkdir -p ~/.local/state/opencode
+        fi
+        echo "------------------------------------------------------------------------"
+        echo ""
+    fi
 
     # Check if .env exists
     if [ ! -f "$OPENCODE_DOCKER_DIR/.env" ]; then
+        echo "------------------------------------------------------------------------"
         echo "⚠️  Warning: .env file not found at $OPENCODE_DOCKER_DIR/.env"
         echo "    - Creating .env from $OPENCODE_DOCKER_DIR/.env.example..."
         cp "$OPENCODE_DOCKER_DIR/.env.example" "$OPENCODE_DOCKER_DIR/.env"
@@ -197,6 +212,7 @@ main() {
         echo "📝  Please edit .env and add your API keys (if needed) before continuing"
         echo "    - Edit: vim $OPENCODE_DOCKER_DIR/.env"
         echo "    - Or: rerun codebox now to use the default settings"
+        echo "------------------------------------------------------------------------"
         echo ""
         exit 1
     fi
