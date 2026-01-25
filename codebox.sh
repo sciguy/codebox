@@ -93,8 +93,11 @@ main() {
     fi
 
     if ! command -v docker >/dev/null 2>&1; then
-        exit_error "🛑 Error: Docker is not installed or not on PATH.
-   Install Docker and ensure the 'docker' CLI is available before running codebox."
+        echo "---------------------------------------------------------------"
+        echo "🛑 Error: Docker is not installed or not on PATH." >&2
+        echo "   Install Docker and ensure the 'docker' CLI is available before running codebox." >&2
+        echo "---------------------------------------------------------------"
+        exit 1
     fi
 
     # IMPORTANT: Capture current directory BEFORE any operations
@@ -151,9 +154,13 @@ main() {
             echo "---------------------------------------------------------------"
             echo ""
         else
-            exit_error "⚠️  $FORCE_REASON
-    This can be dangerous. To continue anyway, rerun with:
-    codebox --force"
+            echo "---------------------------------------------------------------"
+            echo "⚠️  $FORCE_REASON"
+            echo "    This can be dangerous. To continue anyway, rerun with:"
+            echo "    codebox --force"
+            echo "---------------------------------------------------------------"
+            echo ""
+            exit 1
         fi
     fi
 
@@ -207,9 +214,12 @@ main() {
         echo "    - Creating .env from $OPENCODE_DOCKER_DIR/.env.example..."
         cp "$OPENCODE_DOCKER_DIR/.env.example" "$OPENCODE_DOCKER_DIR/.env"
         echo ""
-        exit_error "📝  Please edit .env and add your API keys (if needed) before continuing
-    - Edit: vim $OPENCODE_DOCKER_DIR/.env
-    - Or: rerun codebox now to use the default settings"
+        echo "📝  Please edit .env and add your API keys (if needed) before continuing"
+        echo "    - Edit: vim $OPENCODE_DOCKER_DIR/.env"
+        echo "    - Or: rerun codebox now to use the default settings"
+        echo "------------------------------------------------------------------------"
+        echo ""
+        exit 1
     fi
 
     # Load CODEBOX_NAME from .env if not already set in environment
