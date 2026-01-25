@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+# Always surface a useful error message on unexpected failures
+trap 'exit_error "🛑 Error: unexpected failure at line $LINENO while running: $BASH_COMMAND"' ERR
+
 # Helper function to print error and exit
 exit_error() {
     local message="$1"
@@ -15,7 +18,7 @@ read_env_value() {
     local key="$1"
     local env_file="$OPENCODE_DOCKER_DIR/.env"
     if [ -f "$env_file" ]; then
-        grep -m1 "^${key}=" "$env_file" 2>/dev/null | cut -d= -f2
+        grep -m1 "^${key}=" "$env_file" 2>/dev/null | cut -d= -f2 || true
     fi
 }
 
@@ -321,6 +324,13 @@ main() {
     # Check if HOST_OPENCODE_CONFIG_DIR is set in .env
     local HOST_OPENCODE_CONFIG_DIR=$(read_env_value HOST_OPENCODE_CONFIG_DIR)
 
+    # Resolve TZ from env/.env with Edmonton default
+    local TZ_VALUE="${TZ:-}"
+    if [ -z "$TZ_VALUE" ]; then
+        TZ_VALUE=$(read_env_value TZ)
+    fi
+    TZ_VALUE="${TZ_VALUE:-America/Edmonton}"
+
     # Run OpenCode with current directory as workspace
     echo "---------------------------------------------------------------"
     if [ "$BASH_MODE" = true ]; then
@@ -329,7 +339,7 @@ main() {
         echo "📦 Starting OpenCode in: $WORKSPACE_DIR"
     fi
     echo "   Container path: $CONTAINER_WORKDIR"
-    echo "   (UID=$USER_UID, GID=$USER_GID, CODEBOX_NAME=$CODEBOX_NAME)"
+    echo "   (UID=$USER_UID, GID=$USER_GID, CODEBOX_NAME=$CODEBOX_NAME, TZ=$TZ_VALUE)"
     echo "   Environment: $OPENCODE_DOCKER_DIR/.env"
 
     # Read SHOW_MOUNTS setting (default to true if not set)
@@ -364,6 +374,7 @@ main() {
         --security-opt no-new-privileges
         --env-file "$OPENCODE_DOCKER_DIR/.env"
         -e CODEBOX_NAME="${CODEBOX_NAME}"
+        -e TZ="$TZ_VALUE"
         -e BASH_ENV="/home/${USERNAME}/.bashrc"
         -w "$CONTAINER_WORKDIR"
         -v "$WORKSPACE_DIR:$CONTAINER_WORKDIR"
