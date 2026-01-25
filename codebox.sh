@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+# Helper function to print error and exit
+exit_error() {
+    local message="$1"
+    echo "--------------------------------------------------------------------------------" >&2
+    echo "$message" >&2
+    echo "--------------------------------------------------------------------------------" >&2
+    exit 1
+}
+
 # OpenCode Docker script - run from any directory
 # Usage: codebox [options] [opencode-arguments]
 # Options:
@@ -65,8 +74,7 @@ main() {
     local OPENCODE_DOCKER_DIR="$(dirname "$SCRIPT_PATH")"
 
     if [ -z "$OPENCODE_DOCKER_DIR" ]; then
-        echo "🛑 Error: failed to resolve OpenCode Docker directory" >&2
-        exit 1
+        exit_error "🛑 Error: failed to resolve OpenCode Docker directory"
     fi
 
     if [ "$HELP_REQUESTED" = true ]; then
@@ -84,12 +92,9 @@ main() {
         echo "---------------------------------------------------------------"
     fi
 
-    if ! command -v dockerB >/dev/null 2>&1; then
-        echo "---------------------------------------------------------------"
-        echo "🛑 Error: Docker is not installed or not on PATH." >&2
-        echo "   Install Docker and ensure the 'docker' CLI is available before running codebox." >&2
-        echo "---------------------------------------------------------------"
-        exit 1
+    if ! command -v docker >/dev/null 2>&1; then
+        exit_error "🛑 Error: Docker is not installed or not on PATH.
+   Install Docker and ensure the 'docker' CLI is available before running codebox."
     fi
 
     # IMPORTANT: Capture current directory BEFORE any operations
@@ -146,13 +151,9 @@ main() {
             echo "---------------------------------------------------------------"
             echo ""
         else
-            echo "---------------------------------------------------------------"
-            echo "⚠️  $FORCE_REASON"
-            echo "    This can be dangerous. To continue anyway, rerun with:"
-            echo "    codebox --force"
-            echo "---------------------------------------------------------------"
-            echo ""
-            exit 1
+            exit_error "⚠️  $FORCE_REASON
+    This can be dangerous. To continue anyway, rerun with:
+    codebox --force"
         fi
     fi
 
@@ -169,8 +170,7 @@ main() {
 
     # Check if OpenCode Docker directory exists
     if [ ! -d "$OPENCODE_DOCKER_DIR" ]; then
-        echo "🛑 Error: OpenCode Docker directory not found at $OPENCODE_DOCKER_DIR"
-        exit 1
+        exit_error "🛑 Error: OpenCode Docker directory not found at $OPENCODE_DOCKER_DIR"
     fi
 
     # Derive RELATIVE_PATH from OPENCODE_DOCKER_DIR relative to $HOME
@@ -178,12 +178,10 @@ main() {
     if [[ "$OPENCODE_DOCKER_DIR" == "$HOME/"* ]]; then
         RELATIVE_PATH="${OPENCODE_DOCKER_DIR#"$HOME"/}"
         if [ -z "$RELATIVE_PATH" ]; then
-            echo "🛑 Error: OPENCODE_DOCKER_DIR must be inside \$HOME and include at least one subdirectory" >&2
-            exit 1
+            exit_error "🛑 Error: OPENCODE_DOCKER_DIR must be inside \$HOME and include at least one subdirectory"
         fi
     else
-        echo "🛑 Error: OPENCODE_DOCKER_DIR must be under \$HOME to derive RELATIVE_PATH" >&2
-        exit 1
+        exit_error "🛑 Error: OPENCODE_DOCKER_DIR must be under \$HOME to derive RELATIVE_PATH"
     fi
 
     # Create required host directories for OpenCode
@@ -209,12 +207,9 @@ main() {
         echo "    - Creating .env from $OPENCODE_DOCKER_DIR/.env.example..."
         cp "$OPENCODE_DOCKER_DIR/.env.example" "$OPENCODE_DOCKER_DIR/.env"
         echo ""
-        echo "📝  Please edit .env and add your API keys (if needed) before continuing"
-        echo "    - Edit: vim $OPENCODE_DOCKER_DIR/.env"
-        echo "    - Or: rerun codebox now to use the default settings"
-        echo "------------------------------------------------------------------------"
-        echo ""
-        exit 1
+        exit_error "📝  Please edit .env and add your API keys (if needed) before continuing
+    - Edit: vim $OPENCODE_DOCKER_DIR/.env
+    - Or: rerun codebox now to use the default settings"
     fi
 
     # Load CODEBOX_NAME from .env if not already set in environment
@@ -249,7 +244,7 @@ main() {
             --build-arg CODEBOX_NAME="$CODEBOX_NAME" \
             --build-arg DOCKER_PACKAGES="$DOCKER_PACKAGES" \
             -t opencode-dev:latest \
-            "$OPENCODE_DOCKER_DIR" || exit 1
+            "$OPENCODE_DOCKER_DIR" || exit_error "🛑 Error: Docker build failed during update"
         echo ""
         echo "✅ Update complete!"
         echo ""
