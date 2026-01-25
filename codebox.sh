@@ -323,6 +323,23 @@ main() {
 
     # Check if HOST_OPENCODE_CONFIG_DIR is set in .env
     local HOST_OPENCODE_CONFIG_DIR=$(read_env_value HOST_OPENCODE_CONFIG_DIR)
+    if [ -n "$HOST_OPENCODE_CONFIG_DIR" ]; then
+        if [ ! -d "$HOST_OPENCODE_CONFIG_DIR" ]; then
+            echo "--------------------------------------------------------------------------------" >&2
+            echo "🛑 Error: HOST_OPENCODE_CONFIG_DIR does not exist or is not a directory." >&2
+            echo "   Path: $HOST_OPENCODE_CONFIG_DIR" >&2
+            echo ""
+            echo "   Create it first (2 options), then rerun codebox:" >&2
+            echo ""
+            echo "   - Option 1: Create an empty directory:" >&2
+            echo "       mkdir -p $HOST_OPENCODE_CONFIG_DIR" >&2
+            echo ""
+            echo "   - Option 2: Copy example config to get started:" >&2
+            echo "       cp -R ${OPENCODE_DOCKER_DIR}/config.opencode.example $HOST_OPENCODE_CONFIG_DIR" >&2
+            echo "--------------------------------------------------------------------------------" >&2
+            exit 1
+        fi
+    fi
 
     # Resolve TZ from env/.env with Edmonton default
     local TZ_VALUE="${TZ:-}"
