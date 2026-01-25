@@ -194,13 +194,13 @@ main() {
     # Create required host directories for OpenCode
     if [ ! -d ~/.local/share/opencode ] || [ ! -d ~/.local/state/opencode ]; then
         echo "------------------------------------------------------------------------"
-        echo "These directories are used to maintain data and state across sessions."
+        echo "📁 Missing OpenCode directories used to maintain data and state across sessions..."
         if [ ! -d ~/.local/share/opencode ]; then
-            echo "Creating directory [Data]: ${HOME}/.local/share/opencode"
+            echo "  - Creating directory  [OCData]: ${HOME}/.local/share/opencode"
             mkdir -p ~/.local/share/opencode
         fi
         if [ ! -d ~/.local/state/opencode ]; then
-            echo "Creating directory [State]: ${HOME}/.local/state/opencode"
+            echo "  - Creating directory [OCState]: ${HOME}/.local/state/opencode"
             mkdir -p ~/.local/state/opencode
         fi
         echo "------------------------------------------------------------------------"
@@ -323,12 +323,12 @@ main() {
     # Display volume mounts if enabled
     if [ "$SHOW_MOUNTS" = "true" ]; then
         echo "   Volume mounts:"
-        echo "     - $WORKSPACE_DIR → $CONTAINER_WORKDIR"
+        echo "   - [Working]  $WORKSPACE_DIR → $CONTAINER_WORKDIR"
         if [ -n "$HOST_OPENCODE_CONFIG_DIR" ]; then
-            echo "     - ${HOST_OPENCODE_CONFIG_DIR} → /home/${USERNAME}/.config/opencode"
+            echo "   - [OCConfig] ${HOST_OPENCODE_CONFIG_DIR} → /home/${USERNAME}/.config/opencode"
         fi
-        echo "     - ${HOME}/.local/share/opencode → /home/${USERNAME}/.local/share/opencode"
-        echo "     - ${HOME}/.local/state/opencode → /home/${USERNAME}/.local/state/opencode"
+        echo "   - [OCData]   ${HOME}/.local/share/opencode → /home/${USERNAME}/.local/share/opencode"
+        echo "   - [OCState]  ${HOME}/.local/state/opencode → /home/${USERNAME}/.local/state/opencode"
         if [ "$OAUTH_ENABLED" = true ]; then
             echo "   OAuth callback: http://127.0.0.1:1455"
         fi
