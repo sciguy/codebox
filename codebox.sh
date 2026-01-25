@@ -10,6 +10,15 @@ exit_error() {
     exit 1
 }
 
+# Read a key from .env (returns empty if missing)
+read_env_value() {
+    local key="$1"
+    local env_file="$OPENCODE_DOCKER_DIR/.env"
+    if [ -f "$env_file" ]; then
+        grep -m1 "^${key}=" "$env_file" 2>/dev/null | cut -d= -f2
+    fi
+}
+
 # OpenCode Docker script - run from any directory
 # Usage: codebox [options] [opencode-arguments]
 # Options:
@@ -106,7 +115,7 @@ main() {
 
     # Load additional protected directories from .env if present
     if [ -f "$OPENCODE_DOCKER_DIR/.env" ]; then
-        local PROTECTED_DIRS_ENV=$(grep "^PROTECTED_DIRS=" "$OPENCODE_DOCKER_DIR/.env" 2>/dev/null | cut -d= -f2)
+        local PROTECTED_DIRS_ENV=$(read_env_value PROTECTED_DIRS)
         if [ -n "$PROTECTED_DIRS_ENV" ]; then
             # Split colon-separated paths and add to PROTECTED_DIRS array
             IFS=':' read -ra ADDITIONAL_DIRS <<< "$PROTECTED_DIRS_ENV"
@@ -231,7 +240,7 @@ main() {
         # Allow persistent setting via CODEBOX_NAME_ENV to avoid pollution
         CODEBOX_NAME="${CODEBOX_NAME_ENV}"
     else
-        CODEBOX_NAME=$(grep "^CODEBOX_NAME=" "$OPENCODE_DOCKER_DIR/.env" 2>/dev/null | cut -d= -f2)
+        CODEBOX_NAME=$(read_env_value CODEBOX_NAME)
     fi
     CODEBOX_NAME="${CODEBOX_NAME:-BOX}"
     local CONTAINER_WORKDIR="/${CODEBOX_NAME}/${CONTAINER_HOSTNAME}/${WORKSPACE_NAME}"
@@ -241,8 +250,8 @@ main() {
         echo "🔄 Updating OpenCode Docker container..."
         echo "---------------------------------------------------------------"
         # Extract build args from .env
-        local DOCKER_PACKAGES=$(grep "^DOCKER_PACKAGES=" "$OPENCODE_DOCKER_DIR/.env" 2>/dev/null | cut -d= -f2)
-        local OPENCODE_VERSION=$(grep "^OPENCODE_VERSION=" "$OPENCODE_DOCKER_DIR/.env" 2>/dev/null | cut -d= -f2)
+        local DOCKER_PACKAGES=$(read_env_value DOCKER_PACKAGES)
+        local OPENCODE_VERSION=$(read_env_value OPENCODE_VERSION)
         OPENCODE_VERSION="${OPENCODE_VERSION:-latest}"
         docker build \
             --pull \
@@ -288,8 +297,8 @@ main() {
         echo "    UID=$USER_UID, GID=$USER_GID, CODEBOX_NAME=$CODEBOX_NAME"
         echo "---------------------------------------------------------------"
         # Extract build args from .env
-        local DOCKER_PACKAGES=$(grep "^DOCKER_PACKAGES=" "$OPENCODE_DOCKER_DIR/.env" 2>/dev/null | cut -d= -f2)
-        local OPENCODE_VERSION=$(grep "^OPENCODE_VERSION=" "$OPENCODE_DOCKER_DIR/.env" 2>/dev/null | cut -d= -f2)
+        local DOCKER_PACKAGES=$(read_env_value DOCKER_PACKAGES)
+        local OPENCODE_VERSION=$(read_env_value OPENCODE_VERSION)
         OPENCODE_VERSION="${OPENCODE_VERSION:-latest}"
         docker build \
             --build-arg UID="$USER_UID" \
@@ -303,7 +312,7 @@ main() {
     fi
 
     # Check if HOST_OPENCODE_CONFIG_DIR is set in .env
-    local HOST_OPENCODE_CONFIG_DIR=$(grep "^HOST_OPENCODE_CONFIG_DIR=" "$OPENCODE_DOCKER_DIR/.env" 2>/dev/null | cut -d= -f2)
+    local HOST_OPENCODE_CONFIG_DIR=$(read_env_value HOST_OPENCODE_CONFIG_DIR)
 
     # Run OpenCode with current directory as workspace
     echo "---------------------------------------------------------------"
@@ -317,7 +326,7 @@ main() {
     echo "   Environment: $OPENCODE_DOCKER_DIR/.env"
 
     # Read SHOW_MOUNTS setting (default to true if not set)
-    local SHOW_MOUNTS=$(grep "^SHOW_MOUNTS=" "$OPENCODE_DOCKER_DIR/.env" 2>/dev/null | cut -d= -f2)
+    local SHOW_MOUNTS=$(read_env_value SHOW_MOUNTS)
     SHOW_MOUNTS="${SHOW_MOUNTS:-true}"
 
     # Display volume mounts if enabled
