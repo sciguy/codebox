@@ -2,8 +2,6 @@
 
 A containerized OpenCode environment. This setup allows you to run OpenCode in a Docker container with automatic updates, multi-architecture support, and dynamic mounting of your current working directory into the container.
 
-Docker is required to use CodeBox.
-
 
 ## Features
 
@@ -15,6 +13,15 @@ Docker is required to use CodeBox.
 - Dynamic UID/GID matching for seamless file permissions
 - Non-root user security
 - Separate OpenCode configuration directory that can be integrated with your dotfiles
+
+
+## Prerequisites
+
+- Docker installed
+- Permission to build Docker images
+
+If you run into permission errors, see the [Troubleshooting](#troubleshooting) section.
+
 
 ## Quick Setup
 
@@ -300,6 +307,22 @@ codebox --upgrade
 ```
 
 ## Troubleshooting
+
+### Permission denied while building
+
+If you see an error like this when CodeBox tries to build the image, your user likely does not have permission to access the Docker daemon:
+
+```
+ERROR: permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/_ping": dial unix /var/run/docker.sock: connect: permission denied
+```
+
+On most Linux systems, the typical fix is to add your user to the `docker` group, then log out and back in:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+After re-login, re-run `codebox` and the build should proceed.
 
 
 ### Check Version
