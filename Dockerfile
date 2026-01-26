@@ -95,8 +95,21 @@ RUN mkdir -p /${CODEBOX_NAME} /home/${USERNAME}/.config/opencode \
 ARG TARGETARCH
 ARG OPENCODE_VERSION=latest
 RUN ARCH="${TARGETARCH}" && \
-    # Convert Docker's amd64 to OpenCode's x64 naming
-    if [ "${ARCH}" = "amd64" ]; then ARCH="x64"; fi && \
+    if [ -z "${ARCH}" ]; then \
+      if command -v dpkg >/dev/null 2>&1; then \
+        ARCH=$(dpkg --print-architecture); \
+      else \
+        ARCH=$(uname -m); \
+      fi; \
+    fi && \
+    case "${ARCH}" in \
+      amd64|x86_64) ARCH="x64" ;; \
+      arm64|aarch64) ARCH="arm64" ;; \
+    esac && \
+    if [ -z "${ARCH}" ]; then \
+      echo "Unsupported architecture for OpenCode download" >&2; \
+      exit 1; \
+    fi && \
     # Construct download URL based on version
     if [ "${OPENCODE_VERSION}" = "latest" ]; then \
       DOWNLOAD_URL="https://github.com/anomalyco/opencode/releases/latest/download/opencode-linux-${ARCH}.tar.gz"; \
