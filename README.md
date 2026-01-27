@@ -1,18 +1,20 @@
 # 📦 CodeBox - OpenCode Docker Environment
 
-A containerized OpenCode environment. This setup allows you to run OpenCode in a Docker container with automatic updates, multi-architecture support, and dynamic mounting of your current working directory into the container.
+A bash script that runs OpenCode in a Docker container. It dynamically mounts your current working directory, matches your user permissions, and keeps configuration persistent across sessions.
 
 
 ## Features
 
-- **Isolated workspace** - Only your current directory and specific OpenCode directories are mounted into the container, limiting access to other host files for safer operation
 - **Run from anywhere** - Launch OpenCode from any project directory with automatic mounting
-- Easily update to the latest version of OpenCode using the `--upgrade` option
-- Persistent configuration across containers
-- Multi-architecture support (ARM64/x86_64)
-- Dynamic UID/GID matching for seamless file permissions
-- Non-root user security
-- Separate OpenCode configuration directory that can be integrated with your dotfiles
+- **Isolated workspace** - Only your current directory and OpenCode data directories are mounted into the container
+- **Easy updates** - Update to the latest OpenCode version with `--update`
+- **Persistent data and state** - Auth tokens, history, and session data persist across container restarts
+- **Dynamic UID/GID matching** - Automatic detection ensures seamless file permissions without manual configuration
+- **Multi-architecture support** - Works on ARM64 (Apple Silicon, ARM servers) and x86_64
+- **Non-root container security** - Runs as non-root user with dropped capabilities and privilege restrictions
+- **OAuth authentication support** - Built-in port forwarding for OpenAI and GitHub Copilot sign-in
+- **Customizable config directory** - Mount your own OpenCode config for dotfiles integration
+- **Bash debug mode** - Open an interactive shell for troubleshooting with `--bash`
 
 
 ## Prerequisites
