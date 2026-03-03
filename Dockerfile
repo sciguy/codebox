@@ -29,6 +29,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Install core tools for agentic coding workflows
 # ========================================
 ARG DOCKER_PACKAGES=
+ARG ENABLE_SNAKEMAKE_STACK=false
+ARG SNAKEMAKE_VERSION=8.30
+ARG TARGETARCH
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     ubuntu-keyring \
@@ -43,6 +46,49 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 # ========================================
+# Install optional Snakemake runtime dependencies
+# ========================================
+RUN if [ "${ENABLE_SNAKEMAKE_STACK}" = "true" ]; then \
+      apt-get update && apt-get install -y --no-install-recommends \
+        python3 \
+        python3-venv \
+        python3-pip \
+        wget \
+        unzip \
+        bzip2 \
+        xz-utils \
+        zstd \
+        procps \
+      && rm -rf /var/lib/apt/lists/*; \
+    else \
+      echo "Skipping Snakemake OS packages"; \
+    fi
+
+# ========================================
+# Install micromamba when Snakemake stack is enabled
+# ========================================
+RUN if [ "${ENABLE_SNAKEMAKE_STACK}" = "true" ]; then \
+      MAMBA_ARCH="${TARGETARCH}"; \
+      if [ -z "${MAMBA_ARCH}" ]; then \
+        if command -v dpkg >/dev/null 2>&1; then \
+          MAMBA_ARCH=$(dpkg --print-architecture); \
+        else \
+          MAMBA_ARCH=$(uname -m); \
+        fi; \
+      fi; \
+      case "${MAMBA_ARCH}" in \
+        amd64|x86_64) MAMBA_ARCH="64" ;; \
+        arm64|aarch64) MAMBA_ARCH="aarch64" ;; \
+        *) echo "Unsupported architecture for micromamba: ${MAMBA_ARCH}" >&2; exit 1 ;; \
+      esac; \
+      curl -Ls "https://micro.mamba.pm/api/micromamba/linux-${MAMBA_ARCH}/latest" | tar -xj -C /tmp bin/micromamba \
+      && install -m 0755 /tmp/bin/micromamba /usr/local/bin/micromamba \
+      && rm -rf /tmp/bin; \
+    else \
+      echo "Skipping micromamba install"; \
+    fi
+
+# ========================================
 # Create a non-root user that can write to the container root
 # Ubuntu 24.04 comes with 'ubuntu' user at UID/GID 1000, so we handle this gracefully
 # ========================================
@@ -55,6 +101,8 @@ ARG CODEBOX_NAME=BOX
 ENV UID=${UID}
 ENV GID=${GID}
 ENV CODEBOX_NAME=${CODEBOX_NAME}
+ENV ENABLE_SNAKEMAKE_STACK=${ENABLE_SNAKEMAKE_STACK}
+ENV SNAKEMAKE_VERSION=${SNAKEMAKE_VERSION}
 
 RUN \
     # Check if the GID already exists, if not create it
@@ -89,10 +137,28 @@ RUN mkdir -p /${CODEBOX_NAME} /home/${USERNAME}/.config/opencode \
  && chown -R ${UID}:${GID} /${CODEBOX_NAME} /home/${USERNAME}/.config
 
 # ========================================
+# Create optional Snakemake + mamba environment
+# Run as root but set HOME and MAMBA_ROOT_PREFIX explicitly so micromamba
+# does not try to read/write relative to /root.
+# ========================================
+RUN if [ "${ENABLE_SNAKEMAKE_STACK}" = "true" ]; then \
+      mkdir -p /home/${USERNAME}/micromamba \
+      && chown -R ${UID}:${GID} /home/${USERNAME}/micromamba \
+      && export HOME=/home/${USERNAME} \
+      && export MAMBA_ROOT_PREFIX=/home/${USERNAME}/micromamba \
+      && micromamba create -y -n snk -c conda-forge -c bioconda "snakemake>=${SNAKEMAKE_VERSION}" mamba \
+      && micromamba clean -a -y \
+      && ln -sf "${MAMBA_ROOT_PREFIX}/envs/snk/bin/snakemake" /usr/local/bin/snakemake \
+      && ln -sf "${MAMBA_ROOT_PREFIX}/envs/snk/bin/mamba" /usr/local/bin/mamba \
+      && chown -R ${UID}:${GID} "${MAMBA_ROOT_PREFIX}"; \
+    else \
+      echo "Skipping Snakemake environment creation"; \
+    fi
+
+# ========================================
 # Install OpenCode from GitHub releases
 # Automatically detects platform (amd64/arm64) and downloads the appropriate binary
 # ========================================
-ARG TARGETARCH
 ARG OPENCODE_VERSION=latest
 RUN ARCH="${TARGETARCH}" && \
     if [ -z "${ARCH}" ]; then \
@@ -130,6 +196,7 @@ RUN ARCH="${TARGETARCH}" && \
 # ========================================
 USER ${USERNAME}
 WORKDIR /${CODEBOX_NAME}
+ENV MAMBA_ROOT_PREFIX=/home/${USERNAME}/micromamba
 
 # ========================================
 # Configure git for container usage

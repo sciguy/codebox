@@ -258,7 +258,11 @@ main() {
         # Extract build args from .env
         local DOCKER_PACKAGES=$(read_env_value DOCKER_PACKAGES)
         local OPENCODE_VERSION=$(read_env_value OPENCODE_VERSION)
+        local ENABLE_SNAKEMAKE_STACK=$(read_env_value ENABLE_SNAKEMAKE_STACK)
+        local SNAKEMAKE_VERSION=$(read_env_value SNAKEMAKE_VERSION)
         OPENCODE_VERSION="${OPENCODE_VERSION:-latest}"
+        ENABLE_SNAKEMAKE_STACK="${ENABLE_SNAKEMAKE_STACK:-false}"
+        SNAKEMAKE_VERSION="${SNAKEMAKE_VERSION:-8.30}"
         docker build \
             --pull \
             --no-cache \
@@ -268,6 +272,8 @@ main() {
             --build-arg USERNAME="${USERNAME:-dev}" \
             --build-arg CODEBOX_NAME="$CODEBOX_NAME" \
             --build-arg DOCKER_PACKAGES="$DOCKER_PACKAGES" \
+            --build-arg ENABLE_SNAKEMAKE_STACK="$ENABLE_SNAKEMAKE_STACK" \
+            --build-arg SNAKEMAKE_VERSION="$SNAKEMAKE_VERSION" \
             -t opencode-dev:latest \
             "$OPENCODE_DOCKER_DIR" || exit_error "🛑 Error: Docker build failed during update"
         echo ""
@@ -280,6 +286,13 @@ main() {
     IMAGE_UID=$(printf '%s\n' "$IMAGE_ENV" | awk -F= '$1=="UID"{print $2; exit}')
     IMAGE_GID=$(printf '%s\n' "$IMAGE_ENV" | awk -F= '$1=="GID"{print $2; exit}')
     IMAGE_CODEBOX=$(printf '%s\n' "$IMAGE_ENV" | awk -F= '$1=="CODEBOX_NAME"{print $2; exit}')
+    IMAGE_ENABLE_SNAKEMAKE_STACK=$(printf '%s\n' "$IMAGE_ENV" | awk -F= '$1=="ENABLE_SNAKEMAKE_STACK"{print $2; exit}')
+    IMAGE_SNAKEMAKE_VERSION=$(printf '%s\n' "$IMAGE_ENV" | awk -F= '$1=="SNAKEMAKE_VERSION"{print $2; exit}')
+
+    ENV_ENABLE_SNAKEMAKE_STACK=$(read_env_value ENABLE_SNAKEMAKE_STACK)
+    ENV_SNAKEMAKE_VERSION=$(read_env_value SNAKEMAKE_VERSION)
+    ENV_ENABLE_SNAKEMAKE_STACK="${ENV_ENABLE_SNAKEMAKE_STACK:-false}"
+    ENV_SNAKEMAKE_VERSION="${ENV_SNAKEMAKE_VERSION:-8.30}"
 
     NEEDS_REBUILD=false
     REBUILD_REASON=""
@@ -298,6 +311,24 @@ main() {
         fi
     fi
 
+    if [ -n "$IMAGE_ENABLE_SNAKEMAKE_STACK" ] && [ "$IMAGE_ENABLE_SNAKEMAKE_STACK" != "$ENV_ENABLE_SNAKEMAKE_STACK" ]; then
+        NEEDS_REBUILD=true
+        if [ -n "$REBUILD_REASON" ]; then
+            REBUILD_REASON="$REBUILD_REASON; ENABLE_SNAKEMAKE_STACK changed (image: $IMAGE_ENABLE_SNAKEMAKE_STACK, current: $ENV_ENABLE_SNAKEMAKE_STACK)"
+        else
+            REBUILD_REASON="ENABLE_SNAKEMAKE_STACK changed (image: $IMAGE_ENABLE_SNAKEMAKE_STACK, current: $ENV_ENABLE_SNAKEMAKE_STACK)"
+        fi
+    fi
+
+    if [ -n "$IMAGE_SNAKEMAKE_VERSION" ] && [ "$IMAGE_SNAKEMAKE_VERSION" != "$ENV_SNAKEMAKE_VERSION" ]; then
+        NEEDS_REBUILD=true
+        if [ -n "$REBUILD_REASON" ]; then
+            REBUILD_REASON="$REBUILD_REASON; SNAKEMAKE_VERSION changed (image: $IMAGE_SNAKEMAKE_VERSION, current: $ENV_SNAKEMAKE_VERSION)"
+        else
+            REBUILD_REASON="SNAKEMAKE_VERSION changed (image: $IMAGE_SNAKEMAKE_VERSION, current: $ENV_SNAKEMAKE_VERSION)"
+        fi
+    fi
+
     if [ "$NEEDS_REBUILD" = true ]; then
         echo "---------------------------------------------------------------"
         echo "🏗️  Building OpenCode Docker Image"
@@ -307,7 +338,11 @@ main() {
         # Extract build args from .env
         local DOCKER_PACKAGES=$(read_env_value DOCKER_PACKAGES)
         local OPENCODE_VERSION=$(read_env_value OPENCODE_VERSION)
+        local ENABLE_SNAKEMAKE_STACK=$(read_env_value ENABLE_SNAKEMAKE_STACK)
+        local SNAKEMAKE_VERSION=$(read_env_value SNAKEMAKE_VERSION)
         OPENCODE_VERSION="${OPENCODE_VERSION:-latest}"
+        ENABLE_SNAKEMAKE_STACK="${ENABLE_SNAKEMAKE_STACK:-false}"
+        SNAKEMAKE_VERSION="${SNAKEMAKE_VERSION:-8.30}"
         docker build \
             --pull \
             --no-cache \
@@ -317,6 +352,8 @@ main() {
             --build-arg USERNAME="${USERNAME:-dev}" \
             --build-arg CODEBOX_NAME="$CODEBOX_NAME" \
             --build-arg DOCKER_PACKAGES="$DOCKER_PACKAGES" \
+            --build-arg ENABLE_SNAKEMAKE_STACK="$ENABLE_SNAKEMAKE_STACK" \
+            --build-arg SNAKEMAKE_VERSION="$SNAKEMAKE_VERSION" \
             -t opencode-dev:latest \
             "$OPENCODE_DOCKER_DIR"
     fi
