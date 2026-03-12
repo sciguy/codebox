@@ -42,6 +42,14 @@ Since `HOST_OPENCODE_CONFIG_DIR` is mounted to `~/.config/opencode` inside the D
 
 The following files and directories are supported in an OpenCode config directory:
 
+### Models
+
+Example strings for models to use in opencode.json
+
+- openai/gpt-5.3-codex
+- github-copilot/claude-sonnet-4.6
+- github-copilot/claude-opus-4.6
+
 ### Files
 
 - **`opencode.json`** or **`opencode.jsonc`** - Main configuration file for themes, models, keybinds, tools, permissions, and more
